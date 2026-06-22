@@ -1,0 +1,37 @@
+name: listar-vagas
+description: >
+  Lista as vagas abertas da plataforma de RH.
+  Ativada quando o usuário quer ver vagas disponíveis, abertas ou em andamento.
+
+trigger:
+  keywords:
+    - "vagas abertas"
+    - "quais são as vagas"
+    - "listar vagas"
+    - "vagas disponíveis"
+    - "ver vagas"
+    - "que vagas temos"
+    - "vagas em aberto"
+
+actions:
+  - type: http_request
+    id: vagas
+    method: GET
+    url: "{{ env.API_URL }}/vagas/?status_vaga=aberta&limit=10"
+
+  - type: reply
+    message: |
+      📋 *Vagas abertas no momento:*
+
+      {% if vagas.response | length == 0 %}
+      Nenhuma vaga aberta no momento.
+      {% else %}
+      {% for v in vagas.response %}
+      • *#{{ v.id }} — {{ v.titulo }}*
+        Senioridade: {{ v.senioridade }} | Modelo: {{ v.modelo_trabalho }}
+        Local: {{ v.localizacao or "Não informado" }}
+        Responsável: {{ v.responsavel }}
+      {% endfor %}
+      {% endif %}
+
+      Para ver candidatos de uma vaga: _"candidatos da vaga [ID]"_

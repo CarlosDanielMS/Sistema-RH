@@ -1,0 +1,46 @@
+name: mover-candidato-pipeline
+description: >
+  Move um candidato para uma nova etapa do pipeline de seleção.
+  Ativada quando o usuário quer avançar ou reprovar um candidato no processo.
+
+trigger:
+  keywords:
+    - "mover candidato"
+    - "avançar candidato"
+    - "move o candidato"
+    - "candidato para entrevista"
+    - "candidato aprovado para"
+    - "reprovar candidato"
+    - "muda etapa"
+    - "próxima etapa"
+
+parameters:
+  - name: candidato_id
+    description: "ID do candidato"
+    required: true
+  - name: etapa_nova
+    description: "Nova etapa: triado | entrevista_rh | entrevista_tecnica | teste_pratico | oferta | contratado | reprovado"
+    required: true
+  - name: responsavel
+    description: "Nome do recrutador responsável"
+    required: false
+    default: "{{ user_id }}"
+
+actions:
+  - type: http_request
+    id: resultado
+    method: PUT
+    url: "{{ env.API_URL }}/pipeline/candidato/{{ params.candidato_id }}/mover"
+    body:
+      etapa_nova: "{{ params.etapa_nova }}"
+      responsavel: "{{ params.responsavel }}"
+      observacao: "Movido via OpenClaw por {{ user_id }}"
+
+  - type: reply
+    message: |
+      ✅ *Candidato movido no pipeline!*
+
+      👤 Candidato: #{{ params.candidato_id }}
+      📍 {{ resultado.response.etapa_anterior }} → *{{ resultado.response.etapa_nova }}*
+
+      _Para registrar uma decisão: "registra decisão candidato {{ params.candidato_id }}"_

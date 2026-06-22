@@ -1,0 +1,121 @@
+{
+  "name": "Triagem Automática de Candidatos — RH-IA",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "candidatura-resultado",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-entrada",
+      "name": "Receber Resultado Candidatura",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "candidatura-resultado"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "id": "check-aprovado",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "aprovado",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-aprovado",
+      "name": "Aprovado na Triagem?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email }}",
+        "subject": "✅ Sua candidatura foi aprovada — {{ $json.vaga_titulo }}",
+        "emailType": "html",
+        "message": "<div style=\"font-family:Arial,sans-serif;max-width:580px;margin:0 auto;padding:32px;\">\n  <div style=\"background:#6366f1;border-radius:12px;padding:24px;text-align:center;margin-bottom:24px;\">\n    <h1 style=\"color:#fff;margin:0;font-size:24px;\">🎉 Parabéns, {{ $json.nome.split(' ')[0] }}!</h1>\n    <p style=\"color:#c7d2fe;margin:8px 0 0;\">Sua candidatura passou pela triagem inteligente</p>\n  </div>\n\n  <p style=\"color:#334155;\">Você se candidatou à vaga <strong>{{ $json.vaga_titulo }}</strong> na <strong>{{ $json.empresa }}</strong>.</p>\n\n  <div style=\"background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin:16px 0;\">\n    <p style=\"margin:0;color:#15803d;font-weight:600;\">Score de aderência: {{ $json.score }}/100</p>\n    <p style=\"margin:4px 0 0;color:#166534;font-size:13px;\">Classificação: {{ $json.classificacao }}</p>\n  </div>\n\n  <p style=\"color:#475569;\">Nossa equipe de RH irá analisar seu perfil em breve e entrará em contato com as próximas etapas.</p>\n\n  <p style=\"color:#64748b;font-size:13px;margin-top:32px;border-top:1px solid #e2e8f0;padding-top:16px;\">\n    {{ $json.empresa }} · Processo Seletivo com IA\n  </p>\n</div>",
+        "options": {}
+      },
+      "id": "email-aprovado",
+      "name": "Email — Aprovado",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [720, 180]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email }}",
+        "subject": "Obrigado pelo interesse — {{ $json.vaga_titulo }}",
+        "emailType": "html",
+        "message": "<div style=\"font-family:Arial,sans-serif;max-width:580px;margin:0 auto;padding:32px;\">\n  <div style=\"background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:24px;margin-bottom:24px;\">\n    <h2 style=\"color:#1e293b;margin:0;\">Olá, {{ $json.nome.split(' ')[0] }}</h2>\n    <p style=\"color:#64748b;margin:8px 0 0;\">Candidatura para {{ $json.vaga_titulo }}</p>\n  </div>\n\n  <p style=\"color:#334155;\">Agradecemos seu interesse na vaga <strong>{{ $json.vaga_titulo }}</strong> na <strong>{{ $json.empresa }}</strong>.</p>\n\n  <p style=\"color:#475569;\">Após análise do seu currículo, identificamos que seu perfil não atingiu os requisitos mínimos para esta oportunidade no momento (score: {{ $json.score }}/100, mínimo: 50).</p>\n\n  <p style=\"color:#475569;\">Não desanime! Recomendamos que você:\n    <ul style=\"color:#475569;\">\n      <li>Atualize seu currículo com as tecnologias da vaga</li>\n      <li>Acompanhe nossas próximas oportunidades</li>\n    </ul>\n  </p>\n\n  <p style=\"color:#64748b;font-size:13px;margin-top:32px;border-top:1px solid #e2e8f0;padding-top:16px;\">\n    {{ $json.empresa }} · Processo Seletivo com IA\n  </p>\n</div>",
+        "options": {}
+      },
+      "id": "email-reprovado",
+      "name": "Email — Reprovado",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [720, 420]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"ok\": true, \"status\": \"{{ $json.status }}\", \"processado\": true }"
+      },
+      "id": "resposta-webhook",
+      "name": "Resposta ao Backend",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [960, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://rh_ia_backend:8000/candidatos/{{ $json.candidato_id }}/historico/observacao",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"texto\": \"Candidato aprovado na triagem automática via n8n. Score: {{ $json.score }}/100 — {{ $json.classificacao }}\",\n  \"criado_por\": \"n8n Automação\"\n}",
+        "options": {}
+      },
+      "id": "registrar-historico",
+      "name": "Registrar no Histórico",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [720, 60]
+    }
+  ],
+  "connections": {
+    "Receber Resultado Candidatura": {
+      "main": [[{ "node": "Aprovado na Triagem?", "type": "main", "index": 0 }]]
+    },
+    "Aprovado na Triagem?": {
+      "main": [
+        [
+          { "node": "Registrar no Histórico", "type": "main", "index": 0 },
+          { "node": "Email — Aprovado",        "type": "main", "index": 0 }
+        ],
+        [
+          { "node": "Email — Reprovado", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Email — Aprovado":        { "main": [[{ "node": "Resposta ao Backend", "type": "main", "index": 0 }]] },
+    "Email — Reprovado":       { "main": [[{ "node": "Resposta ao Backend", "type": "main", "index": 0 }]] },
+    "Registrar no Histórico":  { "main": [] }
+  },
+  "pinData": {},
+  "settings": { "executionOrder": "v1" },
+  "staticData": null,
+  "tags": [{ "name": "RH-IA" }],
+  "triggerCount": 1,
+  "updatedAt": "2026-06-22T00:00:00.000Z",
+  "versionId": "1"
+}

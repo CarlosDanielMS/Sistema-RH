@@ -1,0 +1,58 @@
+{
+  "name": "Teste de E-mail — RH-IA Platform",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "hours", "triggerAtHour": 9 }]
+        }
+      },
+      "id": "trigger-manual",
+      "name": "Clique em Executar para testar",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.destinatario || 'sddanielinfo@gmail.com' }}",
+        "subject": "✅ Teste de e-mail — RH-IA Platform funcionando!",
+        "emailType": "html",
+        "message": "<!DOCTYPE html>\n<html lang='pt-BR'>\n<head><meta charset='UTF-8'><style>body{font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:20px;}.header{background:#6366f1;border-radius:12px;padding:20px;text-align:center;color:white;margin-bottom:20px;}.check{font-size:48px;}.title{font-size:22px;font-weight:bold;}.content{color:#334155;line-height:1.6;}.item{background:#f8fafc;border-radius:8px;padding:12px;margin:8px 0;border-left:4px solid #6366f1;}.label{font-size:11px;color:#94a3b8;text-transform:uppercase;font-weight:600;}.value{font-size:14px;color:#1e293b;font-weight:500;margin-top:2px;}.footer{margin-top:24px;color:#94a3b8;font-size:11px;text-align:center;border-top:1px solid #e2e8f0;padding-top:16px;}</style></head>\n<body>\n  <div class='header'>\n    <div class='check'>✅</div>\n    <div class='title'>E-mail funcionando!</div>\n    <p style='margin:8px 0 0;opacity:0.8;font-size:14px;'>Configuração SMTP validada com sucesso</p>\n  </div>\n  <div class='content'>\n    <p>Olá! Este é um e-mail de teste enviado pelo <strong>n8n</strong> integrado com a <strong>RH-IA Platform</strong>.</p>\n    <div class='item'><div class='label'>Enviado em</div><div class='value'>{{ $now.toLocaleString('pt-BR') }}</div></div>\n    <div class='item'><div class='label'>Via</div><div class='value'>n8n 2.26.9 → Gmail SMTP</div></div>\n    <div class='item'><div class='label'>Status</div><div class='value'>🟢 Integração ativa e funcionando</div></div>\n    <p style='margin-top:16px;font-size:13px;color:#475569;'>Se você recebeu este e-mail, o sistema está configurado corretamente e pronto para enviar notificações automáticas aos candidatos.</p>\n  </div>\n  <div class='footer'>RH-IA Platform · n8n Automation</div>\n</body></html>",
+        "options": {}
+      },
+      "id": "send-email",
+      "name": "Enviar E-mail de Teste",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [480, 300],
+      "credentials": {
+        "smtp": {
+          "id": "smtp-credential",
+          "name": "Gmail SMTP — RH-IA"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"status\": \"enviado\", \"para\": \"{{ $('Enviar E-mail de Teste').first().json }}\", \"quando\": \"{{ $now }}\" }"
+      },
+      "id": "resposta",
+      "name": "Resultado",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [720, 300]
+    }
+  ],
+  "connections": {
+    "Clique em Executar para testar": {
+      "main": [[{ "node": "Enviar E-mail de Teste", "type": "main", "index": 0 }]]
+    },
+    "Enviar E-mail de Teste": {
+      "main": [[{ "node": "Resultado", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}

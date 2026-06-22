@@ -1,0 +1,99 @@
+services:
+
+  # ─── Backend FastAPI ────────────────────────────────────────────────────────
+  backend:
+    build: ./backend
+    container_name: rh_ia_backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://rh_user:rh_pass@postgres:5432/rh_ia
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      GROQ_MODEL: ${GROQ_MODEL:-llama-3.3-70b-versatile}
+      CHROMA_HOST: chromadb
+      CHROMA_PORT: 8000
+      UPLOAD_DIR: /app/data/curriculos
+      EMPRESA_NOME: ${EMPRESA_NOME:-RH-IA Platform}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_TLS: ${SMTP_TLS:-true}
+      N8N_WEBHOOK_URL: ${N8N_WEBHOOK_URL:-}
+    volumes:
+      - ./data/curriculos:/app/data/curriculos
+    depends_on:
+      postgres:
+        condition: service_healthy
+      chromadb:
+        condition: service_started
+    restart: unless-stopped
+
+  # ─── Frontend React ──────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:8000
+    container_name: rh_ia_frontend
+    ports:
+      - "3001:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # ─── PostgreSQL ──────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: rh_ia_postgres
+    environment:
+      POSTGRES_USER: rh_user
+      POSTGRES_PASSWORD: rh_pass
+      POSTGRES_DB: rh_ia
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rh_user -d rh_ia"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # ─── ChromaDB ─────────────────────────────────────────────────────────────────
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: rh_ia_chromadb
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./data/chroma:/chroma/chroma
+    environment:
+      ANONYMIZED_TELEMETRY: "false"
+    restart: unless-stopped
+
+  # ─── n8n (automações + WhatsApp) ─────────────────────────────────────────────
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: rh_ia_n8n
+    ports:
+      - "5678:5678"
+    environment:
+      N8N_BASIC_AUTH_ACTIVE: "true"
+      N8N_BASIC_AUTH_USER: ${N8N_USER:-admin}
+      N8N_BASIC_AUTH_PASSWORD: ${N8N_PASSWORD:-admin123}
+      WEBHOOK_URL: http://localhost:5678
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      - backend
+    profiles:
+      - n8n
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  n8n_data:

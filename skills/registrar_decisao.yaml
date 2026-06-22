@@ -1,0 +1,78 @@
+name: registrar-decisao
+description: >
+  Registra uma decisão de RH no diário de decisões.
+  Ativada quando o recrutador quer documentar uma escolha sobre um candidato.
+  Reaproveitado do diário de decisões da Aula 14.
+
+trigger:
+  keywords:
+    - "registra decisão"
+    - "registrar decisão"
+    - "documenta decisão"
+    - "anotar decisão"
+    - "decidi sobre o candidato"
+    - "decisão sobre o candidato"
+
+parameters:
+  - name: candidato_id
+    description: "ID do candidato"
+    required: true
+  - name: vaga_id
+    description: "ID da vaga"
+    required: true
+  - name: tipo_decisao
+    description: >
+      Tipo: aprovado_entrevista_rh | aprovado_entrevista_tecnica |
+      aprovado_teste_pratico | proposta_enviada | contratado |
+      reprovado_triagem | reprovado_entrevista | processo_encerrado
+    required: true
+  - name: justificativa
+    description: "Texto explicando o motivo da decisão"
+    required: true
+  - name: nivel_confianca
+    description: "Nível de confiança de 0 a 1 (ex: 0.8)"
+    required: false
+    default: "0.7"
+
+actions:
+  # Passo 1: IA sugere prós e contras com base na justificativa
+  - type: http_request
+    id: sugestao
+    method: POST
+    url: "{{ env.API_URL }}/decisoes/sugerir-pros-contras"
+    params:
+      justificativa: "{{ params.justificativa }}"
+      tipo_decisao: "{{ params.tipo_decisao }}"
+
+  # Passo 2: Registra a decisão com os prós/contras sugeridos
+  - type: http_request
+    id: decisao
+    method: POST
+    url: "{{ env.API_URL }}/decisoes/"
+    body:
+      candidato_id: "{{ params.candidato_id | int }}"
+      vaga_id: "{{ params.vaga_id | int }}"
+      tipo_decisao: "{{ params.tipo_decisao }}"
+      responsavel: "{{ user_id }}"
+      justificativa: "{{ params.justificativa }}"
+      pros: "{{ sugestao.response.pros }}"
+      contras: "{{ sugestao.response.contras }}"
+      nivel_confianca: "{{ params.nivel_confianca | float }}"
+
+  - type: reply
+    message: |
+      📓 *Decisão registrada no diário!*
+
+      👤 Candidato: #{{ params.candidato_id }}
+      🏷️ Tipo: {{ params.tipo_decisao }}
+      👨‍💼 Responsável: {{ user_id }}
+
+      ✅ *Prós identificados pela IA:*
+      {% for p in sugestao.response.pros %}• {{ p }}
+      {% endfor %}
+
+      ⚠️ *Contras identificados pela IA:*
+      {% for c in sugestao.response.contras %}• {{ c }}
+      {% endfor %}
+
+      _ID da decisão: #{{ decisao.response.id }}_

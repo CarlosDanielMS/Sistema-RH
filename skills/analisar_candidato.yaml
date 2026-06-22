@@ -1,0 +1,65 @@
+name: analisar-candidato
+description: >
+  Dispara a triagem inteligente de um candidato via IA.
+  Retorna score de aderência, classificação e justificativa.
+  Ativada quando o usuário quer analisar, triar ou avaliar um candidato específico.
+
+trigger:
+  keywords:
+    - "analisa candidato"
+    - "analisar candidato"
+    - "tria o candidato"
+    - "score do candidato"
+    - "avalia o candidato"
+    - "análise de currículo"
+    - "currículo do candidato"
+
+parameters:
+  - name: candidato_id
+    description: "ID numérico do candidato"
+    required: true
+    extract_from: user_message
+    pattern: "\\d+"
+
+actions:
+  - type: http_request
+    id: analise
+    method: POST
+    url: "{{ env.API_URL }}/candidatos/{{ params.candidato_id }}/analisar"
+
+  - type: conditional
+    condition: "{{ analise.status_code == 200 }}"
+    if_true:
+      - type: reply
+        message: |
+          🤖 *Análise de Triagem — Candidato #{{ params.candidato_id }}*
+
+          📊 Score: *{{ analise.response.analise.score }}/100*
+          🏷️ Classificação: *{{ analise.response.analise.classificacao | upper }}*
+          ⏱️ Latência: {{ analise.response.latencia_s }}s
+
+          ✅ *Pontos fortes:*
+          {% for p in analise.response.analise.pontos_fortes %}
+          • {{ p }}
+          {% endfor %}
+
+          ⚠️ *Pontos de atenção:*
+          {% for p in analise.response.analise.pontos_de_atencao %}
+          • {{ p }}
+          {% endfor %}
+
+          ❌ *Lacunas:*
+          {% for l in analise.response.analise.lacunas %}
+          • {{ l }}
+          {% endfor %}
+
+          📝 *Justificativa:*
+          {{ analise.response.analise.justificativa }}
+
+          💡 *Recomendação para o recrutador:*
+          {{ analise.response.analise.recomendacao_para_recrutador }}
+
+          ⚠️ _Esta análise é um apoio à decisão. O recrutador tem a palavra final._
+    if_false:
+      - type: reply
+        message: "❌ Não foi possível analisar o candidato #{{ params.candidato_id }}. Verifique se o currículo foi enviado."

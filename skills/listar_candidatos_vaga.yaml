@@ -1,0 +1,41 @@
+name: listar-candidatos-vaga
+description: >
+  Lista os candidatos inscritos em uma vaga específica, com score e etapa atual.
+  Ativada quando o usuário menciona candidatos de uma vaga pelo ID.
+
+trigger:
+  keywords:
+    - "candidatos da vaga"
+    - "quem se candidatou"
+    - "inscritos na vaga"
+    - "ver candidatos"
+    - "pipeline da vaga"
+
+parameters:
+  - name: vaga_id
+    description: "ID numérico da vaga"
+    required: true
+    extract_from: user_message
+    pattern: "\\d+"
+
+actions:
+  - type: http_request
+    id: pipeline
+    method: GET
+    url: "{{ env.API_URL }}/pipeline/vaga/{{ params.vaga_id }}"
+
+  - type: reply
+    message: |
+      📊 *Pipeline — {{ pipeline.response.titulo_vaga }}*
+
+      {% for etapa, candidatos in pipeline.response.etapas.items() %}
+      {% if candidatos | length > 0 %}
+      *{{ etapa | upper | replace('_', ' ') }}* ({{ candidatos | length }})
+      {% for c in candidatos %}
+        → {{ c.nome }} | Score: {{ c.score_aderencia or '—' }} | {{ c.status_triagem }}
+      {% endfor %}
+
+      {% endif %}
+      {% endfor %}
+
+      Para analisar um candidato: _"analisa candidato [ID]"_

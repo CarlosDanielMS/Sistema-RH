@@ -1,0 +1,11 @@
+.env
+__pycache__/
+*.pyc
+*.pyo
+data/curriculos/*.pdf
+data/chroma/
+*.db
+*.sqlite3
+.venv/
+venv/
+node_modules/

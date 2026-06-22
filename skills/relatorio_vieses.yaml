@@ -1,0 +1,54 @@
+name: relatorio-vieses
+description: >
+  Gera relatório de padrões e possíveis vieses no processo seletivo.
+  Pode ser geral ou restrito a uma vaga específica.
+  Reaproveitado da análise de padrões comportamentais da Aula 14.
+
+trigger:
+  keywords:
+    - "relatório de vieses"
+    - "análise de vieses"
+    - "padrões do processo"
+    - "vieses na seleção"
+    - "relatório da vaga"
+    - "como está o processo"
+    - "análise do recrutamento"
+    - "diversidade no processo"
+
+parameters:
+  - name: vaga_id
+    description: "ID da vaga (opcional — omita para relatório geral)"
+    required: false
+
+actions:
+  - type: conditional
+    condition: "{{ params.vaga_id is defined and params.vaga_id }}"
+    if_true:
+      - type: http_request
+        id: relatorio
+        method: GET
+        url: "{{ env.API_URL }}/analises/vaga/{{ params.vaga_id }}"
+    if_false:
+      - type: http_request
+        id: relatorio
+        method: GET
+        url: "{{ env.API_URL }}/analises/vieses"
+
+  - type: reply
+    message: |
+      📈 *Relatório de Padrões e Vieses*
+      {% if params.vaga_id %}Vaga: #{{ params.vaga_id }}{% else %}Visão geral do processo{% endif %}
+
+      📊 *Métricas:*
+      • Total de candidatos: {{ relatorio.response.metricas.total_candidatos }}
+      • Total de decisões: {{ relatorio.response.metricas.total_decisoes }}
+      • Score médio IA: {{ relatorio.response.metricas.score_medio_ia }}/100
+      • Aprovados pela IA: {{ relatorio.response.metricas.aprovados_ia }}
+      • Reprovados pela IA: {{ relatorio.response.metricas.reprovados_ia }}
+      • Reprovados por humanos: {{ relatorio.response.metricas.reprovados_humano }}
+      • Decisões sem justificativa clara: {{ relatorio.response.metricas.decisoes_sem_justificativa_clara }}
+
+      🔍 *Análise de padrões:*
+      {{ relatorio.response.analise }}
+
+      _Relatório gerado automaticamente. Use como apoio — não como julgamento final._
