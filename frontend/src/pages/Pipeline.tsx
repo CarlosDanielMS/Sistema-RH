@@ -171,7 +171,7 @@ export function Pipeline() {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="page-title">Pipeline Kanban</h1>
+          <h1 className="page-title">Fluxo de Seleção</h1>
           <p className="page-subtitle">
             Arraste os cards para mover candidatos entre etapas
             {totalUrgentes > 0 && (

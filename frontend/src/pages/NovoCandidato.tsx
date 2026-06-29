@@ -147,7 +147,7 @@ export function NovoCandidato() {
 
         <div className="card bg-slate-50 border-slate-200 flex items-center gap-2 text-xs text-slate-500 py-2.5 px-4">
           <span className="w-2 h-2 rounded-full bg-slate-400 inline-block" />
-          Ao cadastrar, o candidato entra automaticamente na etapa <strong className="text-slate-700">Triado</strong> do pipeline.
+          Ao cadastrar, o candidato entra automaticamente na etapa <strong className="text-slate-700">Triado</strong> do fluxo.
         </div>
 
         <div className="flex gap-3">

@@ -143,10 +143,37 @@ export function Usuarios() {
       </div>
 
       {/* Info de acesso */}
-      <div className="card bg-slate-50 border-slate-200 text-sm text-slate-600 space-y-1">
-        <p className="font-semibold text-slate-800 flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-amber-500" /> Diferenças de acesso:</p>
-        <p>• <strong>Admin</strong>: acesso completo — gerencia usuários, vê Monitor/Logs, altera qualquer dado</p>
-        <p>• <strong>Usuário</strong>: acesso ao recrutamento — vagas, candidatos, pipeline, agenda, marketing (sem Monitor/Logs e sem gestão de usuários)</p>
+      <div className="card bg-slate-50 border-slate-200 text-sm text-slate-600 space-y-2">
+        <p className="font-semibold text-slate-800 flex items-center gap-1.5">
+          <ShieldCheck className="w-4 h-4 text-amber-500" /> Isolamento de dados por usuário
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-1">
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <p className="font-semibold text-amber-800 flex items-center gap-1.5 mb-1">
+              <ShieldCheck className="w-3.5 h-3.5" /> Admin
+            </p>
+            <ul className="text-xs text-amber-700 space-y-0.5">
+              <li>• Vê <strong>todos os dados</strong> de todos os usuários</li>
+              <li>• Gerencia usuários e permissões</li>
+              <li>• Acessa Monitor/Logs</li>
+              <li>• Pode resolver problemas de qualquer conta</li>
+            </ul>
+          </div>
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="font-semibold text-blue-800 flex items-center gap-1.5 mb-1">
+              <User className="w-3.5 h-3.5" /> Recrutador (Usuário)
+            </p>
+            <ul className="text-xs text-blue-700 space-y-0.5">
+              <li>• Inicia com <strong>sistema zerado</strong> — dados isolados</li>
+              <li>• Vê apenas vagas e candidatos que criou</li>
+              <li>• Pipeline, agenda, marketing próprios</li>
+              <li>• Sem acesso a Monitor/Logs ou outros usuários</li>
+            </ul>
+          </div>
+        </div>
+        <p className="text-xs text-slate-400 pt-1">
+          Cada recrutador trabalha em seu próprio espaço. O admin pode ver e intervir em qualquer conta quando necessário.
+        </p>
       </div>
 
       {/* Modal: Criar Usuário */}

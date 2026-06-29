@@ -4,6 +4,7 @@ import {
   ArrowLeft, Brain, ArrowRightLeft, BookOpen, CheckCircle, AlertTriangle,
   XCircle, Loader2, Info, FileText, Upload, X, Pencil, User, RefreshCw,
   Clock, MessageSquare, Paperclip, Send, GitBranch, ClipboardList,
+  CalendarDays, ThumbsUp, ThumbsDown, Gift, UserCheck, Mail,
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../services/api'
@@ -54,6 +55,14 @@ export function DetalheCandidato() {
   const [plataforma, setPlataforma]   = useState('')
   const [instrucoes, setInstrucoes]   = useState('')
   const [testeMsg, setTesteMsg]       = useState<{ ok: boolean; texto: string } | null>(null)
+
+  const [modalOferta, setModalOferta]   = useState(false)
+  const [ofSalario, setOfSalario]       = useState('')
+  const [ofCargo, setOfCargo]           = useState('')
+  const [ofInicio, setOfInicio]         = useState('')
+  const [ofBeneficios, setOfBeneficios] = useState('')
+  const [ofMensagem, setOfMensagem]     = useState('')
+  const [ofertaMsg, setOfertaMsg]       = useState<{ ok: boolean; texto: string } | null>(null)
   const [dragging, setDragging] = useState(false)
   const [obsTexto, setObsTexto] = useState('')
   const [uploadErro, setUploadErro] = useState<string | null>(
@@ -134,6 +143,27 @@ export function DetalheCandidato() {
   })
 
   const anexoRef = useRef<HTMLInputElement>(null)
+
+  const moverEtapa = useMutation({
+    mutationFn: ({ etapa, obs }: { etapa: string; obs?: string }) =>
+      pipelineService.mover(candidatoId, etapa as any, 'Recrutador', obs),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['candidato', candidatoId] })
+      qc.invalidateQueries({ queryKey: ['candidatos'] })
+      qc.invalidateQueries({ queryKey: ['pipeline'] })
+    },
+  })
+
+  const enviarOferta = useMutation({
+    mutationFn: () => api.post('/webhooks/enviar-oferta', null, {
+      params: { candidato_id: candidatoId, salario: ofSalario, cargo: ofCargo, inicio: ofInicio, beneficios: ofBeneficios, mensagem: ofMensagem },
+    }),
+    onSuccess: () => {
+      setOfertaMsg({ ok: true, texto: `Cartão de oferta enviado para ${candidato?.email}` })
+      qc.invalidateQueries({ queryKey: ['historico', candidatoId] })
+    },
+    onError: (e: any) => setOfertaMsg({ ok: false, texto: e?.response?.data?.detail || 'Falha no envio da oferta.' }),
+  })
 
   const enviarTeste = useMutation({
     mutationFn: () => api.post('/marketing/enviar-teste-pratico', null, {
@@ -304,11 +334,60 @@ export function DetalheCandidato() {
                 onClick={() => { setEtapaNova(candidato.etapa_pipeline as EtapaPipeline); setModalPipeline(true) }}
                 className="btn-secondary w-full justify-center"
               >
-                <ArrowRightLeft className="w-4 h-4" /> Mover no Pipeline
+                <ArrowRightLeft className="w-4 h-4" /> Mover no Fluxo
               </button>
               <Link to="/decisoes" className="btn-secondary w-full justify-center flex items-center gap-2">
                 <BookOpen className="w-4 h-4" /> Registrar Decisão
               </Link>
+
+              {/* ── Painel de ações por etapa ── */}
+              {candidato.etapa_pipeline === 'entrevista_rh' && (
+                <Link
+                  to="/agenda"
+                  className="w-full justify-center flex items-center gap-2 py-2 px-4 rounded-lg text-sm font-medium border bg-blue-50 border-blue-300 text-blue-700 hover:bg-blue-100 transition-colors"
+                >
+                  <CalendarDays className="w-4 h-4" /> Agendar Entrevista RH
+                  <span className="ml-1 text-xs bg-blue-200 text-blue-800 px-1.5 py-0.5 rounded-full">Etapa atual</span>
+                </Link>
+              )}
+
+              {candidato.etapa_pipeline === 'teste_pratico' && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => moverEtapa.mutate({ etapa: 'oferta', obs: 'Aprovado no Teste Prático' })}
+                    disabled={moverEtapa.isPending}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-emerald-50 border border-emerald-300 text-emerald-700 rounded-lg text-sm font-medium hover:bg-emerald-100 transition-colors"
+                  >
+                    <ThumbsUp className="w-4 h-4" /> Aprovado
+                  </button>
+                  <button
+                    onClick={() => moverEtapa.mutate({ etapa: 'reprovado', obs: 'Reprovado no Teste Prático' })}
+                    disabled={moverEtapa.isPending}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-red-50 border border-red-300 text-red-600 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors"
+                  >
+                    <ThumbsDown className="w-4 h-4" /> Reprovado
+                  </button>
+                </div>
+              )}
+
+              {candidato.etapa_pipeline === 'oferta' && (
+                <button
+                  onClick={() => { setOfertaMsg(null); setModalOferta(true) }}
+                  className="w-full justify-center flex items-center gap-2 py-2 px-4 rounded-lg text-sm font-medium border bg-violet-50 border-violet-300 text-violet-700 hover:bg-violet-100 transition-colors"
+                >
+                  <Gift className="w-4 h-4" /> Enviar Cartão de Oferta
+                  <span className="ml-1 text-xs bg-violet-200 text-violet-800 px-1.5 py-0.5 rounded-full">Etapa atual</span>
+                </button>
+              )}
+
+              {candidato.etapa_pipeline === 'contratado' && (
+                <Link
+                  to="/decisoes"
+                  className="w-full justify-center flex items-center gap-2 py-2 px-4 rounded-lg text-sm font-medium border bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-emerald-100 transition-colors"
+                >
+                  <UserCheck className="w-4 h-4" /> Ver Decisão de Contratação
+                </Link>
+              )}
 
               {/* Botão Teste Prático — aparece sempre mas destaca quando na etapa correta */}
               <button
@@ -695,6 +774,65 @@ export function DetalheCandidato() {
         </div>
       )}
 
+      {/* Modal: Cartão de Oferta */}
+      <Modal open={modalOferta} onClose={() => setModalOferta(false)} title="Enviar Cartão de Oferta por E-mail" size="lg">
+        <div className="space-y-4">
+          {ofertaMsg && (
+            <div className={`flex items-start gap-3 p-3 rounded-xl border ${ofertaMsg.ok ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
+              {ofertaMsg.ok ? <CheckCircle className="w-4 h-4 text-emerald-500 mt-0.5" /> : <XCircle className="w-4 h-4 text-red-500 mt-0.5" />}
+              <p className={`text-sm ${ofertaMsg.ok ? 'text-emerald-700' : 'text-red-700'}`}>{ofertaMsg.texto}</p>
+            </div>
+          )}
+
+          <div className="p-3 bg-violet-50 border border-violet-200 rounded-xl text-xs text-violet-800 flex items-start gap-2">
+            <Gift className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold">Destinatário: {candidato?.nome}</p>
+              <p className="opacity-80">{candidato?.email}</p>
+              <p className="mt-1 opacity-70">O e-mail terá botões de <strong>Aceitar</strong> e <strong>Recusar</strong>. Se aceito, o candidato passa automaticamente para Contratado e uma Decisão é criada.</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label">Cargo oferecido *</label>
+              <input className="input" placeholder="Ex: Desenvolvedor Pleno" value={ofCargo} onChange={e => setOfCargo(e.target.value)} />
+            </div>
+            <div>
+              <label className="label">Salário *</label>
+              <input className="input" placeholder="Ex: R$ 8.000/mês" value={ofSalario} onChange={e => setOfSalario(e.target.value)} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label">Data de início</label>
+              <input className="input" type="date" value={ofInicio} onChange={e => setOfInicio(e.target.value)} />
+            </div>
+            <div>
+              <label className="label">Benefícios</label>
+              <input className="input" placeholder="VR, VT, Plano de saúde" value={ofBeneficios} onChange={e => setOfBeneficios(e.target.value)} />
+            </div>
+          </div>
+
+          <div>
+            <label className="label">Mensagem personalizada <span className="text-slate-400 font-normal">(opcional)</span></label>
+            <textarea className="input resize-none" rows={3} placeholder="Ex: Ficamos muito felizes em contar com você no time!" value={ofMensagem} onChange={e => setOfMensagem(e.target.value)} />
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button className="btn-secondary" onClick={() => setModalOferta(false)}>Cancelar</button>
+            <button
+              className="btn-primary bg-violet-600 hover:bg-violet-700 border-violet-600 flex items-center gap-2"
+              onClick={() => enviarOferta.mutate()}
+              disabled={!ofSalario.trim() || !ofCargo.trim() || enviarOferta.isPending}
+            >
+              {enviarOferta.isPending ? <><Loader2 className="w-4 h-4 animate-spin" /> Enviando...</> : <><Mail className="w-4 h-4" /> Enviar Proposta</>}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
       {/* Modal: Enviar Teste Prático */}
       <Modal open={modalTeste} onClose={() => setModalTeste(false)} title="Enviar Teste Prático por E-mail" size="lg">
         <div className="space-y-4">
@@ -782,8 +920,8 @@ export function DetalheCandidato() {
         </div>
       </Modal>
 
-      {/* Modal: Mover Pipeline */}
-      <Modal open={modalPipeline} onClose={() => setModalPipeline(false)} title="Mover no Pipeline">
+      {/* Modal: Mover no Fluxo */}
+      <Modal open={modalPipeline} onClose={() => setModalPipeline(false)} title="Mover no Fluxo">
         <div className="space-y-4">
           <div>
             <label className="label">Nova Etapa</label>

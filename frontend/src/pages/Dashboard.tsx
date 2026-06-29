@@ -97,7 +97,7 @@ export function Dashboard() {
           <p className="page-subtitle">Visão geral do processo seletivo</p>
         </div>
         <Link to="/pipeline" className="btn-secondary flex items-center gap-1.5 text-sm">
-          <GitBranch className="w-4 h-4" /> Ver Pipeline
+          <GitBranch className="w-4 h-4" /> Ver Fluxo
         </Link>
       </div>
 
@@ -147,13 +147,13 @@ export function Dashboard() {
         {/* Funil do Pipeline */}
         <div className="card">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-slate-800">Funil do Pipeline</h3>
-            <Link to="/pipeline" className="text-xs text-primary-600 hover:underline">Ver kanban</Link>
+            <h3 className="font-semibold text-slate-800">Funil do Fluxo</h3>
+            <Link to="/pipeline" className="text-xs text-primary-600 hover:underline">Ver fluxo</Link>
           </div>
           {funnelData.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-slate-300">
               <GitBranch className="w-8 h-8 mb-2" />
-              <p className="text-xs">Nenhum candidato no pipeline</p>
+              <p className="text-xs">Nenhum candidato no fluxo</p>
             </div>
           ) : (
             <div className="space-y-2">

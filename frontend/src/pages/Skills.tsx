@@ -21,7 +21,7 @@ export function Skills() {
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    api.get('/openclaw/status').then(r => setStatusIA(r.data)).catch(() => null)
+    api.get('/openrh/status').then(r => setStatusIA(r.data)).catch(() => null)
   }, [])
 
   useEffect(() => {
@@ -39,7 +39,7 @@ export function Skills() {
 
     try {
       const historico = msgs.map(m => ({ role: m.role, content: m.content }))
-      const res = await api.post('/openclaw/chat', {
+      const res = await api.post('/openrh/chat', {
         mensagem: msg,
         historico,
       })
@@ -68,7 +68,7 @@ export function Skills() {
             <Brain className="w-6 h-6 text-primary-600" />
           </div>
           <div>
-            <h1 className="page-title mb-0">OpenClaw</h1>
+            <h1 className="page-title mb-0">OpenRH</h1>
             <p className="page-subtitle">Assistente IA focado em recrutamento e resolução de problemas de RH</p>
           </div>
         </div>
@@ -76,7 +76,7 @@ export function Skills() {
           {statusIA && (
             <div className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border ${statusIA.ativo ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-red-50 border-red-200 text-red-600'}`}>
               <div className={`w-2 h-2 rounded-full ${statusIA.ativo ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
-              {statusIA.ativo ? `${statusIA.modelo}` : 'IA offline'}
+              {statusIA.ativo ? 'IA online' : 'IA offline'}
             </div>
           )}
           {msgs.length > 0 && (
@@ -154,7 +154,7 @@ export function Skills() {
               </div>
               <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-slate-50 border border-slate-100 flex items-center gap-2">
                 <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />
-                <span className="text-sm text-slate-400">OpenClaw está pensando...</span>
+                <span className="text-sm text-slate-400">OpenRH está pensando...</span>
               </div>
             </div>
           )}
@@ -182,7 +182,7 @@ export function Skills() {
             </button>
           </div>
           <p className="text-xs text-slate-400 mt-2 text-center">
-            OpenClaw usa Groq (LLaMA 3.3) — especializado em RH e recrutamento ético
+            OpenRH — Assistente especializado em recrutamento e gestão de pessoas
           </p>
         </div>
       </div>

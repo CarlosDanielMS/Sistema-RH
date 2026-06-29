@@ -5,6 +5,7 @@ import {
   Mail, CalendarDays, Bell, Activity, ShieldCheck, UserCog,
 } from 'lucide-react'
 import { cn } from '../../utils/helpers'
+import { BuscaGlobal } from '../ui/BuscaGlobal'
 
 interface SidebarProps { onLogout: () => void; userName: string; isAdmin: boolean }
 
@@ -21,15 +22,14 @@ export function Sidebar({ onLogout, userName, isAdmin }: SidebarProps) {
       items: [
         { to: '/vagas',      icon: Briefcase, label: 'Vagas' },
         { to: '/candidatos', icon: Users,     label: 'Candidatos' },
-        { to: '/pipeline',   icon: GitBranch, label: 'Pipeline' },
+        { to: '/pipeline',   icon: GitBranch, label: 'Fluxo' },
       ],
     },
     {
       label: 'Análise & Decisão',
       items: [
-        { to: '/decisoes',         icon: BookOpen,  label: 'Decisões' },
-        { to: '/analises-vieses',  icon: BarChart3, label: 'Análise de Vieses' },
-        { to: '/skills',           icon: Brain,     label: 'OpenClaw' },
+        { to: '/decisoes', icon: BookOpen, label: 'Decisões' },
+        { to: '/skills',   icon: Brain,   label: 'OpenRH' },
       ],
     },
     {
@@ -46,8 +46,9 @@ export function Sidebar({ onLogout, userName, isAdmin }: SidebarProps) {
         { to: '/configuracoes', icon: Settings, label: 'Configurações' },
         // Itens exclusivos do admin
         ...(isAdmin ? [
-          { to: '/admin/usuarios', icon: UserCog,  label: 'Usuários' },
-          { to: '/admin/logs',     icon: Activity, label: 'Monitor / Logs' },
+          { to: '/admin/usuarios',   icon: UserCog,  label: 'Usuários' },
+          { to: '/analises-vieses',  icon: BarChart3, label: 'Análise de Vieses' },
+          { to: '/admin/logs',       icon: Activity, label: 'Monitor / Logs' },
         ] : []),
       ],
     },
@@ -66,6 +67,11 @@ export function Sidebar({ onLogout, userName, isAdmin }: SidebarProps) {
             <p className="text-slate-400 text-xs leading-tight">Platform</p>
           </div>
         </div>
+      </div>
+
+      {/* Busca global */}
+      <div className="px-3 py-2 border-b border-slate-800">
+        <BuscaGlobal />
       </div>
 
       {/* Nav */}

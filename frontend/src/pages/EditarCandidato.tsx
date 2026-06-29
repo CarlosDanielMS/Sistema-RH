@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { ArrowLeft, Save, FileText, CheckCircle, Loader2, Trash2, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Save, FileText, CheckCircle, Loader2, Trash2, AlertTriangle, Tag, X as XIcon } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { candidatosService } from '../services/candidatosService'
 import { vagasService } from '../services/vagasService'
@@ -26,6 +26,8 @@ export function EditarCandidato() {
   const toast = useToast()
   const [erro, setErro] = useState('')
   const [confirmarExclusao, setConfirmarExclusao] = useState(false)
+  const [tagInput, setTagInput] = useState('')
+  const [tags, setTags] = useState<string[]>([])
 
   const { data: vagas = [] } = useQuery({
     queryKey: ['vagas'],
@@ -49,6 +51,9 @@ export function EditarCandidato() {
     } : undefined,
   })
 
+  // Carrega tags quando candidato é carregado (sem useEffect para evitar re-render)
+  const candidatoTags = candidato?.tags ? (() => { try { return JSON.parse(candidato.tags || '[]') } catch { return [] } })() : []
+
   const salvar = useMutation({
     mutationFn: (data: FormData) =>
       candidatosService.atualizar(candidatoId, {
@@ -57,6 +62,7 @@ export function EditarCandidato() {
         telefone: data.telefone,
         linkedin: data.linkedin,
         vaga_id: data.vaga_id ? Number(data.vaga_id) : undefined,
+        tags: JSON.stringify(tags),
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['candidato', candidatoId] })
@@ -135,6 +141,52 @@ export function EditarCandidato() {
               </select>
             </div>
           </div>
+        </div>
+
+        {/* Tags / Competências */}
+        <div className="card space-y-2">
+          <h3 className="font-semibold text-slate-800 text-sm flex items-center gap-2">
+            <Tag className="w-4 h-4 text-primary-500" /> Tags / Competências
+          </h3>
+          <div className="flex gap-2">
+            <input
+              className="input flex-1 text-sm"
+              placeholder="Ex: Python, React, Liderança — Enter para adicionar"
+              value={tagInput}
+              onChange={e => setTagInput(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  const t = tagInput.trim()
+                  if (t && !tags.includes(t) && tags.length < 15) {
+                    setTags([...tags, t]); setTagInput('')
+                  }
+                }
+              }}
+            />
+          </div>
+          {tags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {tags.map((tag, i) => (
+                <span key={i} className="flex items-center gap-1 text-xs bg-primary-50 text-primary-700 border border-primary-100 px-2 py-1 rounded-full">
+                  {tag}
+                  <button type="button" onClick={() => setTags(tags.filter((_, j) => j !== i))} className="hover:text-red-500">
+                    <XIcon className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+          {tags.length === 0 && candidatoTags.length === 0 && (
+            <p className="text-xs text-slate-400">Nenhuma tag ainda. Digite e pressione Enter para adicionar.</p>
+          )}
+          {tags.length === 0 && candidatoTags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {candidatoTags.map((tag: string, i: number) => (
+                <span key={i} className="text-xs bg-slate-100 text-slate-500 px-2 py-1 rounded-full">{tag}</span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Status do currículo */}

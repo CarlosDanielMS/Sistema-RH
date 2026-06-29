@@ -2,6 +2,7 @@ import { useState } from 'react'
 import {
   AlertTriangle, TrendingDown, Users, BarChart2, RefreshCw,
   Loader2, Plus, Pencil, Trash2, CheckCircle, X, Save,
+  BookOpen, ChevronDown, ChevronUp, Scale, Eye, Shield,
 } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -71,6 +72,8 @@ export function AnaliseVieses() {
   const [modalOpen, setModalOpen]   = useState(false)
   const [editando, setEditando]     = useState<ViésRegistro | null>(null)
   const [filtroStatus, setFiltroStatus] = useState('todos')
+
+  const [docAberta, setDocAberta] = useState(false)
 
   const { data: relatorio, isLoading: loadingRelatorio, refetch, isRefetching } = useQuery({
     queryKey: ['analise-vieses'],
@@ -178,6 +181,98 @@ export function AnaliseVieses() {
             <Plus className="w-4 h-4" /> Registrar Viés
           </button>
         </div>
+      </div>
+
+      {/* ── Documentação ── */}
+      <div className="card border-primary-100 bg-primary-50/30">
+        <button
+          onClick={() => setDocAberta(!docAberta)}
+          className="w-full flex items-center justify-between text-left"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <BookOpen className="w-4 h-4 text-primary-600" />
+            </div>
+            <div>
+              <p className="font-semibold text-slate-800 text-sm">O que é a Análise de Vieses?</p>
+              <p className="text-xs text-slate-500">Clique para entender como usar esta ferramenta</p>
+            </div>
+          </div>
+          {docAberta ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+        </button>
+
+        {docAberta && (
+          <div className="mt-5 pt-5 border-t border-primary-100 space-y-5">
+            <p className="text-sm text-slate-600 leading-relaxed">
+              A Análise de Vieses é uma ferramenta de <strong className="text-slate-800">compliance e equidade</strong> no processo seletivo.
+              Ela existe porque o recrutamento humano naturalmente carrega preferências inconscientes que podem
+              discriminar candidatos por razões não relacionadas à competência profissional.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Eye className="w-4 h-4 text-primary-500 flex-shrink-0" />
+                  <p className="text-sm font-semibold text-slate-800">Análise Automática</p>
+                </div>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  A IA analisa todas as decisões registradas e identifica padrões automaticamente:
+                  alta taxa de reprovação, decisões sem justificativa, score médio abaixo do ideal.
+                </p>
+              </div>
+              <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                  <p className="text-sm font-semibold text-slate-800">Registro Manual</p>
+                </div>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Você pode documentar vieses observados no dia a dia: gênero, etnia, idade, aparência,
+                  afinidade etc., com severidade e ação corretiva planejada.
+                </p>
+              </div>
+              <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Scale className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                  <p className="text-sm font-semibold text-slate-800">Conformidade</p>
+                </div>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Gera um histórico auditável das decisões e padrões identificados, essencial para
+                  auditorias de diversidade e conformidade com a LGPD.
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3">
+              <p className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                <Shield className="w-3.5 h-3.5 text-primary-500" /> Tipos de vieses que podem ser identificados
+              </p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                {[
+                  ['Gênero',       'Preferência por candidatos de um gênero específico'],
+                  ['Etnia / Raça', 'Discriminação por origem étnica ou racial'],
+                  ['Idade',        'Rejeição por ser muito jovem ou muito experiente'],
+                  ['Afinidade',    'Aprovação de quem tem perfil similar ao entrevistador'],
+                  ['Confirmação',  'Buscar apenas informações que confirmam a primeira impressão'],
+                  ['Ancoragem',    'Deixar a primeira informação influenciar todo julgamento'],
+                ].map(([tipo, desc]) => (
+                  <div key={tipo} className="bg-slate-50 border border-slate-100 rounded-lg p-2.5">
+                    <p className="font-semibold text-slate-700">{tipo}</p>
+                    <p className="text-slate-400 mt-0.5 leading-relaxed">{desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-start gap-2">
+              <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+              <p>
+                <strong>Importante:</strong> A IA de triagem do sistema foi configurada para ignorar dados sensíveis
+                (gênero, etnia, idade, endereço, estado civil) conforme a LGPD. A Análise de Vieses monitora
+                o comportamento <em>humano</em> nas decisões registradas no Diário de Decisões.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Análise Automática IA ── */}

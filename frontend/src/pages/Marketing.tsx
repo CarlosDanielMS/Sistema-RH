@@ -226,7 +226,7 @@ SMTP_TLS=true`}
       {tab === 'templates' && (
         <div className="space-y-3">
           <div className="card bg-blue-50 border-blue-200 text-sm text-blue-700">
-            <strong>Como funciona:</strong> Quando um candidato muda de etapa no Pipeline, o sistema envia automaticamente o e-mail do template correspondente (se estiver ativo).
+            <strong>Como funciona:</strong> Quando um candidato muda de etapa no Fluxo, o sistema envia automaticamente o e-mail do template correspondente (se estiver ativo).
             Variáveis: <code className="bg-blue-100 px-1 rounded">$nome</code> <code className="bg-blue-100 px-1 rounded">$vaga</code> <code className="bg-blue-100 px-1 rounded">$empresa</code> <code className="bg-blue-100 px-1 rounded">$data_entrevista</code> <code className="bg-blue-100 px-1 rounded">$link_entrevista</code>
           </div>
 
